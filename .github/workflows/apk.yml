@@ -1,0 +1,75 @@
+name: Fabriquer APK Mon carnet
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['index.html']
+permissions:
+  contents: write
+concurrency:
+  group: apk-moncarnet
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Preparer Android
+        run: |
+          mkdir app && cd app
+          npm init -y
+          npm install @capacitor/core@6.2.0 @capacitor/cli@6.2.0 @capacitor/android@6.2.0 @capacitor/local-notifications@6
+          mkdir www && cp ../index.html www/
+          npx cap init "Mon carnet" com.lushipratique.moncarnet --web-dir www
+          npx cap add android
+          npx cap sync android
+          R=android/app/src/main
+          python3 - <<'PY'
+          import re, base64
+          h = open('../index.html', encoding='utf-8').read()
+          b = lambda i: re.search('id="' + i + '">(.*?)</script>', h, re.S).group(1).strip()
+          r = 'android/app/src/main/'
+          j = r + 'java/com/lushipratique/moncarnet/'
+          open(j + 'MainActivity.java', 'w').write(b('apk-main'))
+          open(j + 'CarnetNativePlugin.java', 'w').write(b('apk-plugin'))
+          open('icon.png', 'wb').write(base64.b64decode(b('apk-icon')))
+          m = r + 'AndroidManifest.xml'
+          x = open(m, encoding='utf-8').read()
+          perms = '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" /><uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" /><uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /><uses-permission android:name="android.permission.RECORD_AUDIO" />'
+          x, n1 = re.subn(r'(<application)', perms + r'\1', x, count=1)
+          x, n2 = re.subn(r'</application>', '</application><queries><intent><action android:name="android.speech.action.RECOGNIZE_SPEECH" /></intent><intent><action android:name="android.speech.RecognitionService" /></intent></queries>', x, count=1)
+          assert n1 == n2 == 1, (n1, n2)
+          open(m, 'w', encoding='utf-8').write(x)
+          PY
+          rm -rf $R/res/mipmap-anydpi-v26
+          for d in $R/res/mipmap-*dpi; do cp icon.png $d/ic_launcher.png; cp icon.png $d/ic_launcher_round.png; done
+          find $R/res -name 'splash.png' -delete; mkdir -p $R/res/drawable
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<layer-list xmlns:android="http://schemas.android.com/apk/res/android"><item><shape><gradient android:startColor="#E2187B" android:endColor="#5B2BD6" android:angle="270"/></shape></item><item android:drawable="@mipmap/ic_launcher" android:gravity="center" android:width="120dp" android:height="120dp"/></layer-list>' > $R/res/drawable/splash.xml
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" android/app/build.gradle
+          cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - name: Signer et publier
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.KS_PASS }}
+          KS_ALIAS: ${{ secrets.KS_ALIAS }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ] || [ -z "$KS_PASS" ]; then echo "::error::Secrets KEYSTORE_B64 et KS_PASS manquants (les memes que pour KALAMU)"; exit 1; fi
+          ALIAS="${KS_ALIAS:-kalamu}"
+          echo "$KEYSTORE_B64" | tr -d ' \r\n' | base64 -d > cle.p12
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          $BT/zipalign -p -f 4 app/android/app/build/outputs/apk/debug/app-debug.apk a.apk
+          $BT/apksigner sign --ks cle.p12 --ks-pass env:KS_PASS --ks-key-alias "$ALIAS" --key-pass env:KS_PASS --out mon-carnet.apk a.apk
+          rm -f cle.p12
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add mon-carnet.apk
+          git commit -m "APK Mon carnet 1.${{ github.run_number }}"
+          git pull --rebase origin main
+          git push

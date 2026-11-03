@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e2187b">
+<title>Mon carnet · LushiPratique</title>
+<style>
+:root{--bg:#f6f2f8;--card:#fff;--ink:#1f1530;--mute:#6e6383;--line:#e7dfee;--pri:#e2187b;--pri2:#ff8a00;--vio:#5b2bd6;--ok:#0f9d6b;--bad:#d93a3a;--field:#faf7fc}
+@media (prefers-color-scheme:dark){:root{--bg:#140f1c;--card:#1f1729;--ink:#f3edf8;--mute:#a99db8;--line:#33283f;--field:#1a1323}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;cursor:pointer}
+.hd{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,var(--pri),#a3249c 55%,var(--vio));color:#fff;padding:calc(12px + env(safe-area-inset-top)) 14px 12px}
+.hd .r{display:flex;align-items:center;gap:8px}
+.hd h1{margin:0;font-size:1.25rem;flex:1}
+.ib{background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:10px;min-width:40px;height:40px;padding:0 10px;font-size:1.05rem}
+.search{margin-top:10px;width:100%;border:0;border-radius:12px;padding:11px 14px;font-size:1rem;background:rgba(255,255,255,.95);color:#1f1530}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 12px 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 13px;font-size:.9rem}
+.chip.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+main{max-width:760px;margin:0 auto;padding:8px 12px calc(96px + env(safe-area-inset-bottom))}
+.sec{color:var(--mute);font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:14px 4px 6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.nc{position:relative;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:12px 12px 10px;border-top:5px solid var(--c);min-height:110px;display:flex;flex-direction:column;gap:5px;overflow:hidden}
+.nc b{font-size:1rem;line-height:1.25}
+.nc p{margin:0;color:var(--mute);font-size:.88rem;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+.nc .ft{margin-top:auto;display:flex;flex-wrap:wrap;gap:5px;font-size:.75rem}
+.tg{background:var(--field);border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--mute)}
+.tg.due{background:#fff1e0;border-color:#ffc27a;color:#a35600}.tg.late{background:#ffe3e3;border-color:#f5a3a3;color:#b42020}
+.tg.sum{color:var(--ok);font-weight:700}
+.pin{position:absolute;top:8px;right:9px;font-size:.85rem}
+.empty{text-align:center;color:var(--mute);padding:50px 20px}
+.empty .e{font-size:3rem}
+.fab{position:fixed;right:18px;bottom:calc(20px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:flex-end;gap:10px;z-index:6}
+.fab button{border:0;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.25);font-weight:700}
+.fab .main{width:62px;height:62px;font-size:1.9rem;background:linear-gradient(135deg,var(--pri2),var(--pri));color:#fff}
+.fab .opt{padding:11px 16px;background:var(--card);color:var(--ink);display:none}
+.fab.open .opt{display:block}
+/* éditeur */
+#ed{position:fixed;inset:0;background:var(--bg);z-index:10;display:none;flex-direction:column}
+#ed.on{display:flex}
+.eh{display:flex;align-items:center;gap:6px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;background:var(--card);border-bottom:4px solid var(--c,var(--pri))}
+.eh .ib{background:var(--field);color:var(--ink)}
+.eh .sp{flex:1}
+.eb{flex:1;overflow:auto;padding:12px 14px calc(30px + env(safe-area-inset-bottom));max-width:760px;width:100%;margin:0 auto}
+#e-t{width:100%;border:0;background:transparent;color:var(--ink);font-size:1.4rem;font-weight:700;outline:none;padding:6px 0}
+#e-x{width:100%;min-height:45vh;border:0;background:transparent;color:var(--ink);font-size:1.08rem;line-height:1.6;outline:none;resize:none;padding:4px 0}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.meta .tg{font-size:.82rem;padding:3px 9px}
+.cl{list-style:none;margin:0;padding:0}
+.cl li{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+.cl input[type=checkbox]{width:22px;height:22px;accent-color:var(--pri);flex:none}
+.cl input[type=text]{flex:1;border:0;background:transparent;color:var(--ink);font-size:1.06rem;padding:12px 0;outline:none;min-width:0}
+.cl li.done input[type=text]{text-decoration:line-through;color:var(--mute)}
+.cl .amt{font-weight:700;color:var(--ok);white-space:nowrap}.cl .amt.usd{color:var(--vio)}.cl .amt.neg{color:var(--bad)}
+.cl .del{border:0;background:transparent;color:var(--mute);font-size:1.1rem;padding:6px}
+.addl{display:block;width:100%;margin:10px 0;border:2px dashed var(--line);background:transparent;color:var(--pri);font-weight:700;border-radius:12px;padding:11px}
+.calc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin-top:14px;font-variant-numeric:tabular-nums}
+.calc b{text-align:right}.calc .h{grid-column:1/-1;font-weight:700;color:var(--mute);font-size:.82rem;text-transform:uppercase;letter-spacing:.05em}
+.colors{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.colors button{width:36px;height:36px;border-radius:50%;border:3px solid transparent}
+.colors button.on{border-color:var(--ink)}
+/* feuilles */
+.bg{position:fixed;inset:0;background:rgba(15,8,25,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sh{background:var(--card);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+.sh h3{margin:0 0 8px}
+.sh p{color:var(--mute);margin:4px 0 8px;font-size:.92rem}
+.sh label{display:block;font-size:.86rem;color:var(--mute);margin:10px 0 4px}
+.sh input{width:100%;font-size:1.02rem;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
+.menu button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:13px 6px;border-bottom:1px solid var(--line);font-size:1rem}
+.menu button.d{color:var(--bad)}
+.btns{display:flex;gap:8px;margin-top:14px}
+.btns button{flex:1;border:0;border-radius:12px;padding:12px;font-weight:600;background:var(--field);color:var(--ink)}
+.btns .p{background:var(--pri);color:#fff}.btns .d{background:var(--bad);color:#fff}
+.tot-dep{background:linear-gradient(135deg,var(--pri2),var(--pri));color:#fff;border-radius:14px;padding:12px 14px;margin:6px 0 4px;display:grid;grid-template-columns:1fr auto;gap:2px 10px}
+.tot-dep b{text-align:right;font-size:1.25rem}.tot-dep small{opacity:.9}
+.nc .dos{font-size:.72rem;color:var(--mute)}
+#lock{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,var(--pri),#a3249c 55%,var(--vio));color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px}
+#lock.on{display:flex}
+#lock .dots{display:flex;gap:14px;margin:6px 0 10px}
+#lock .dots i{width:16px;height:16px;border-radius:50%;border:2px solid #fff}
+#lock .dots i.f{background:#fff}
+#lock .pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px}
+#lock .pad button{height:72px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;font-size:1.6rem}
+#lock .msg{min-height:1.3em;font-size:.95rem;opacity:.95;text-align:center}
+.ib.rec{background:var(--bad)!important;color:#fff!important;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.trash{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.trash div{flex:1;min-width:0}.trash b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trash small{color:var(--mute)}
+.trash button{border:0;border-radius:10px;padding:8px 10px;background:var(--field);color:var(--ink);font-weight:600}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#1f1530;color:#fff;padding:10px 16px;border-radius:999px;font-size:.92rem;z-index:30;display:flex;gap:12px;align-items:center;max-width:92vw}
+.toast button{border:0;background:transparent;color:#ffb3d6;font-weight:700}
+</style>
+</head>
+<body>
+<header class="hd">
+  <div class="r"><h1>📒 Mon carnet</h1><button class="ib" id="b-lock" aria-label="Verrouiller" style="display:none">🔒</button><button class="ib" id="b-menu" aria-label="Menu">☰</button></div>
+  <input class="search" id="q" type="search" placeholder="Chercher dans mes notes…" autocomplete="off">
+</header>
+<div class="chips" id="chips"></div>
+<main id="list"></main>
+<div class="fab" id="fab">
+  <button class="opt" data-new="liste">☑ Liste à cocher</button>
+  <button class="opt" data-new="calc">🧮 Calcul (FC / $)</button>
+  <button class="opt" data-new="note">📝 Note</button>
+  <button class="main" id="b-new" aria-label="Nouvelle note">+</button>
+</div>
+
+<div id="lock" role="dialog" aria-label="Code secret"><div style="font-size:2.4rem">📒</div><b style="font-size:1.2rem" id="l-t">Mon carnet</b><div class="msg" id="l-m">Tapez votre code secret</div>
+  <div class="dots" id="l-d"><i></i><i></i><i></i><i></i></div>
+  <div class="pad" id="l-p"><button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="x" style="font-size:1rem">Annuler</button><button data-k="0">0</button><button data-k="b">⌫</button></div></div>
+<section id="ed" aria-label="Éditeur">
+  <div class="eh">
+    <button class="ib" id="e-back" aria-label="Retour">←</button>
+    <span class="sp"></span>
+    <button class="ib" id="e-mic" aria-label="Dicter">🎤</button>
+    <button class="ib" id="e-pin" aria-label="Épingler">📌</button>
+    <button class="ib" id="e-rem" aria-label="Rappel">⏰</button>
+    <button class="ib" id="e-wa" aria-label="Envoyer sur WhatsApp">💬</button>
+    <button class="ib" id="e-more" aria-label="Plus">⋯</button>
+  </div>
+  <div class="eb">
+    <input id="e-t" placeholder="Titre" autocomplete="off">
+    <div class="meta" id="e-meta"></div>
+    <textarea id="e-x" placeholder="Écrivez ici… Une ligne avec un montant (« transport 3000 », « Josep 80$ ») est additionnée toute seule."></textarea>
+    <div id="e-cl"></div>
+    <div id="e-calc"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+"use strict";
+const K="monCarnet.v2", COUL=["#e2187b","#ff8a00","#0f9d6b","#1a9be0","#5b2bd6","#d93a3a","#0f9aa8","#8a6d1e"];
+const $=id=>document.getElementById(id);
+let S=charger(), filtre="tout", ouvert=null;
+
+/* ---------- APK : pont vers Android (dictée, vrais rappels) ---------- */
+const NAT=(()=>{ try{ const C=window.Capacitor; return C&&C.isNativePlatform&&C.isNativePlatform()?((pl,m,o)=>C.nativePromise(pl,m,o||{})):null; }catch(e){ return null; } })();
+function numId(s){ let h=7; for(const c of s) h=(h*31+c.charCodeAt(0))|0; return Math.abs(h)%2000000000+1; }
+async function programmer(n){ if(!NAT) return; const id=numId(n.id);
+  try{ await NAT("LocalNotifications","cancel",{notifications:[{id}]}); }catch(e){}
+  if(!n.rap||n.rap<=Date.now()) return;
+  try{ const p=await NAT("LocalNotifications","requestPermissions"); if(p&&p.display&&p.display!=="granted"){ toast("Autorisez les notifications pour les rappels"); return; }
+    await NAT("LocalNotifications","schedule",{notifications:[{id,title:"⏰ "+(n.titre||"Mon carnet"),body:(apercu(n).split("\n")[0]||"Rappel"),schedule:{at:new Date(n.rap).toISOString(),allowWhileIdle:true},extra:{note:n.id}}]}); }
+  catch(e){ toast("Rappel enregistré, mais Android n'a pas pu le programmer"); } }
+
+/* ---------- données ---------- */
+function charger(){
+  try{ const s=JSON.parse(localStorage.getItem(K)); if(s&&Array.isArray(s.notes)){ s.corbeille=s.corbeille||[]; s.dossiers=s.dossiers||["Shop","Église","Famille","Livres","Projets"]; return s; } }catch(e){}
+  const s={taux:2300,notes:[],corbeille:[],dossiers:["Shop","Église","Famille","Livres","Projets"]};
+  try{ const v1=JSON.parse(localStorage.getItem("monCarnet.v1")); if(v1&&v1.taux) s.taux=v1.taux;   // reprend l'ancien carnet
+    if(v1&&v1.pages) v1.pages.forEach(p=>{ if(p.txt) s.notes.push(nouvelleNote("calc",p.nom,p.txt.split("\n").map(t=>({t,ok:false})))); }); }catch(e){}
+  if(!s.notes.length) s.notes.push(nouvelleNote("note","Bienvenue 👋","Ceci est votre bloc-notes.\n\n• Touchez + pour une note, une liste à cocher ou un calcul.\n• Une ligne avec un montant est additionnée : « transport 3000 ». Avec « $ », c'est en dollars.\n• ⏰ ajoute un rappel, 📌 garde la note en haut, 🎤 écrit ce que vous dites.\n• Rangez vos notes dans des 📁 dossiers ; les dépenses restent ensemble dans 💰 Dépenses.\n• Mettez un code secret dans le menu ☰.\n• Les notes restent dans ce téléphone. Pensez à « Sauvegarder » dans le menu ☰."));
+  return s; }
+function sauver(){ try{ localStorage.setItem(K,JSON.stringify(S)); }catch(e){ toast("Mémoire pleine : impossible d'enregistrer"); } }
+function nouvelleNote(type,titre,corps){ const n={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type,titre:titre||"",
+  c:type==="calc"?COUL[1]:type==="liste"?COUL[2]:COUL[0],pin:false,rap:null,dossier:"",cree:Date.now(),modif:Date.now()};
+  if(type==="note") n.txt=corps||""; else n.lignes=Array.isArray(corps)?corps:[{t:"",ok:false}]; return n; }
+const trouve=id=>S.notes.find(n=>n.id===id);
+
+/* ---------- montants ---------- */
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmt(v){ return (Math.round(v*100)/100).toLocaleString("fr-FR").replace(/[  ]/g," "); }
+const fc=v=>fmt(v)+" FC", usd=v=>fmt(v)+" $";
+const estDollar=l=>/\$|\busd\b|\bdollars?\b/i.test(l);
+function montant(l){ const m=String(l).match(/-?\s*\d[\d .,]*/g); if(!m) return null;
+  let x=m[m.length-1].replace(/\s/g,""), neg=x.charAt(0)==="-"; if(neg) x=x.slice(1);
+  if(/^\d{1,3}(\.\d{3})+$/.test(x)) x=x.replace(/\./g,"");
+  x=x.replace(/,(?=\d{3}(\D|$))/g,"").replace(",",".").replace(/\.$/,"");
+  const v=parseFloat(x); return isFinite(v)?(neg?-v:v):null; }
+function lignesDe(n){ return n.type==="note" ? n.txt.split("\n") : n.lignes.map(l=>l.t); }
+function somme(L){ let f=0,u=0,k=0; L.forEach(l=>{ const v=montant(l); if(v==null) return; if(estDollar(l)) u+=v; else f+=v; k++; }); return {f,u,k,t:f+u*S.taux}; }
+const totaux=n=>somme(lignesDe(n));
+// liste à cocher : ce qui est coché (fait / payé) et ce qui reste
+function partage(n){ return {fait:somme(n.lignes.filter(l=>l.ok).map(l=>l.t)), reste:somme(n.lignes.filter(l=>!l.ok).map(l=>l.t))}; }
+// le calcul s'affiche dès qu'il y a un montant (note libre : à partir de 2)
+const montreCalcul=n=>n.type==="calc"||(n.type==="liste"?totaux(n).k>=1:totaux(n).k>=2);
+
+/* ---------- liste des notes ---------- */
+function apercu(n){ if(n.type==="note") return n.txt;
+  return n.lignes.filter(l=>l.t.trim()).slice(0,5).map(l=>(n.type==="liste"?(l.ok?"☑ ":"☐ "):"• ")+l.t).join("\n"); }
+function etiquetteRappel(n){ if(!n.rap) return ""; const d=new Date(n.rap), late=d<Date.now();
+  return `<span class="tg ${late?"late":"due"}">⏰ ${late?"Passé · ":""}${quand(d)}</span>`; }
+function quand(d){ const j=new Date(), dm=new Date(j); dm.setDate(j.getDate()+1);
+  const h=d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  if(d.toDateString()===j.toDateString()) return "aujourd'hui "+h; if(d.toDateString()===dm.toDateString()) return "demain "+h;
+  return d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" "+h; }
+function carte(n){ const t=totaux(n), nb=n.type==="liste"?n.lignes.filter(l=>l.t.trim()).length:0, fait=n.type==="liste"?n.lignes.filter(l=>l.ok&&l.t.trim()).length:0;
+  return `<button class="nc" data-id="${n.id}" style="--c:${n.c}">${n.pin?'<span class="pin">📌</span>':""}<b>${esc(n.titre||"Sans titre")}</b>${n.type==="calc"?'<span class="dos">💰 Dépenses</span>':n.dossier?`<span class="dos">📁 ${esc(n.dossier)}</span>`:""}<p>${esc(apercu(n))}</p>
+  <div class="ft">${n.type==="liste"&&nb?`<span class="tg">☑ ${fait}/${nb}</span>`:""}${montreCalcul(n)&&t.k?`<span class="tg sum">${fc(t.t)}</span>`:""}${n.type==="liste"&&t.k&&partage(n).reste.k&&partage(n).fait.k?`<span class="tg">reste ${fc(partage(n).reste.t)}</span>`:""}${etiquetteRappel(n)}</div></button>`; }
+function rendreListe(){
+  const q=$("q").value.trim().toLowerCase();
+  const nRap=S.notes.filter(n=>n.rap).length;
+  purger();
+  const F=[["tout","Toutes"],["calc","💰 Dépenses"],["liste","☑ Listes"],["rap","⏰ Rappels"+(nRap?" ("+nRap+")":"")]]
+    .concat(S.dossiers.map(d=>["d:"+d,"📁 "+d]),S.corbeille.length?[["trash","🗑 Corbeille ("+S.corbeille.length+")"]]:[]);
+  $("chips").innerHTML=F.map(([k,l])=>`<button class="chip${filtre===k?" on":""}" data-f="${esc(k)}">${esc(l)}</button>`).join("")+`<button class="chip" data-f="+dos">＋ Dossier</button>`;
+  if(filtre==="trash"){ rendreCorbeille(); return; }
+  let L=S.notes.filter(n=>filtre==="tout"||(filtre==="rap"?n.rap:filtre.startsWith("d:")?(n.dossier===filtre.slice(2)&&n.type!=="calc"):n.type===filtre));
+  if(q) L=L.filter(n=>(n.titre+"\n"+lignesDe(n).join("\n")).toLowerCase().includes(q));
+  if(filtre==="rap") L.sort((a,b)=>a.rap-b.rap); else L.sort((a,b)=>b.modif-a.modif);
+  const P=L.filter(n=>n.pin&&filtre!=="rap"), A=L.filter(n=>!n.pin||filtre==="rap");
+  let h="";
+  if(filtre==="calc"&&L.length){ const g=somme(L.flatMap(lignesDe)); h+=`<div class="tot-dep"><span>Toutes les dépenses<br><small>${L.length} liste${L.length>1?"s":""} · ${g.k} montant${g.k>1?"s":""}</small></span><b>${fc(g.t)}<br><small>≈ ${usd(g.t/S.taux)}</small></b></div>`; }
+  if(filtre.startsWith("d:")&&!L.length) h+=`<div class="hint" style="color:var(--mute);margin:6px 4px">Les listes de dépenses restent ensemble dans 💰 Dépenses.</div>`;
+  if(!L.length) h=`<div class="empty"><div class="e">${q?"🔎":"📒"}</div><p>${q?"Aucune note ne contient « "+esc(q)+" ».":"Rien ici pour l'instant.<br>Touchez + pour commencer."}</p></div>`;
+  else{ if(P.length) h+=`<div class="sec">Épinglées</div><div class="grid">${P.map(carte).join("")}</div>`;
+    if(A.length) h+=(P.length?`<div class="sec">Autres</div>`:"")+`<div class="grid">${A.map(carte).join("")}</div>`; }
+  $("list").innerHTML=h; }
+$("chips").onclick=async e=>{ const b=e.target.closest("[data-f]"); if(!b) return;
+  if(b.dataset.f==="+dos"){ const v=await demander("Nouveau dossier","Nom du dossier","",true); if(v&&v.trim()&&!S.dossiers.includes(v.trim())){ S.dossiers.push(v.trim()); sauver(); filtre="d:"+v.trim(); } rendreListe(); return; }
+  filtre=b.dataset.f; rendreListe(); };
+$("q").oninput=rendreListe;
+$("list").onclick=e=>{ const b=e.target.closest("[data-id]"); if(b) ouvrir(b.dataset.id); };
+
+/* ---------- corbeille : 30 jours ---------- */
+const JOURS30=30*864e5;
+function purger(){ const av=S.corbeille.length; S.corbeille=S.corbeille.filter(n=>Date.now()-n.sup<JOURS30); if(S.corbeille.length!==av) sauver(); }
+function jeter(n){ const i=S.notes.indexOf(n); if(i<0) return; S.notes.splice(i,1); n.sup=Date.now(); S.corbeille.unshift(n); sauver(); if(n.rap){ const r=n.rap; n.rap=null; programmer(n); n.rap=r; }
+  toast("Note mise à la corbeille",()=>{ S.corbeille=S.corbeille.filter(x=>x!==n); delete n.sup; S.notes.splice(i,0,n); sauver(); rendreListe(); }); }
+function rendreCorbeille(){ let h=`<div class="hint" style="color:var(--mute);margin:6px 4px 10px">Les notes supprimées restent ici 30 jours, puis partent pour de bon.</div>`;
+  if(!S.corbeille.length) h+=`<div class="empty"><div class="e">🗑</div><p>La corbeille est vide.</p></div>`;
+  h+=S.corbeille.map((n,i)=>{ const j=Math.max(1,Math.ceil((n.sup+JOURS30-Date.now())/864e5));
+    return `<div class="trash"><div><b>${esc(n.titre||"Sans titre")}</b><small>Supprimée ${quand(new Date(n.sup))} · encore ${j} jour${j>1?"s":""}</small></div><button data-r="${i}">↩ Remettre</button><button data-z="${i}" style="color:var(--bad)">✕</button></div>`; }).join("");
+  if(S.corbeille.length) h+=`<button class="addl" id="t-vide" style="color:var(--bad)">Vider la corbeille</button>`;
+  $("list").innerHTML=h; }
+$("list").addEventListener("click",async e=>{ const r=e.target.closest("[data-r]"), z=e.target.closest("[data-z]");
+  if(r){ const n=S.corbeille.splice(+r.dataset.r,1)[0]; delete n.sup; S.notes.unshift(n); sauver(); programmer(n); toast("Note remise"); if(!S.corbeille.length) filtre="tout"; rendreListe(); }
+  else if(z){ if(await confirmer("Supprimer cette note pour toujours ?","Supprimer")){ S.corbeille.splice(+z.dataset.z,1); sauver(); if(!S.corbeille.length) filtre="tout"; rendreListe(); } }
+  else if(e.target.id==="t-vide"){ if(await confirmer("Vider la corbeille ? Les notes seront perdues pour toujours.","Vider")){ S.corbeille=[]; sauver(); filtre="tout"; rendreListe(); } } });
+
+/* ---------- création ---------- */
+$("b-new").onclick=()=>$("fab").classList.toggle("open");
+$("fab").addEventListener("click",e=>{ const b=e.target.closest("[data-new]"); if(!b) return; $("fab").classList.remove("open");
+  const n=nouvelleNote(b.dataset.new,""); if(filtre.startsWith("d:")&&n.type!=="calc") n.dossier=filtre.slice(2); S.notes.unshift(n); sauver(); ouvrir(n.id,true); });
+
+/* ---------- éditeur ---------- */
+function ouvrir(id,neuf){ const n=trouve(id); if(!n) return; ouvert=n;
+  $("ed").classList.add("on"); $("ed").style.setProperty("--c",n.c);
+  $("e-t").value=n.titre; $("e-x").style.display=n.type==="note"?"":"none";
+  if(n.type==="note"){ $("e-x").value=n.txt; $("e-cl").innerHTML=""; taille(); }
+  else rendreLignes();
+  rendreMeta(); rendreCalc(); history.pushState({ed:1},"");
+  if(neuf) $("e-t").focus(); }
+function fermer(){ arreterDictee(); if(!ouvert) return; const n=ouvert; ouvert=null; $("ed").classList.remove("on");
+  const vide=!n.titre.trim()&&!lignesDe(n).some(l=>l.trim());
+  if(vide&&!n.rap){ S.notes=S.notes.filter(x=>x!==n); } sauver(); rendreListe(); }
+$("e-back").onclick=()=>history.back();
+window.addEventListener("popstate",()=>{ if(ouvert) fermer(); });
+function touche(){ if(!ouvert) return; ouvert.modif=Date.now(); sauver(); }
+function taille(){ const x=$("e-x"); x.style.height="auto"; x.style.height=Math.max(x.scrollHeight,innerHeight*.45)+"px"; }
+$("e-t").oninput=()=>{ ouvert.titre=$("e-t").value; touche(); };
+$("e-t").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); if(ouvert.type==="note") $("e-x").focus(); else { const i=$("e-cl").querySelector('input[type=text]'); if(i) i.focus(); } } };
+$("e-x").oninput=()=>{ ouvert.txt=$("e-x").value; taille(); rendreCalc(); touche(); };
+
+function ligneHtml(l,i,type){ const v=montant(l.t), cls=v==null?"":(estDollar(l.t)?"usd":"")+(v<0?" neg":"");
+  return `<li class="${l.ok?"done":""}" data-i="${i}">${type==="liste"?`<input type="checkbox" ${l.ok?"checked":""} aria-label="Fait">`:""}
+  <input type="text" value="${esc(l.t)}" enterkeyhint="next" autocomplete="off" placeholder="${type==="calc"?"ex : transport 3000":"ex : riz 15000"}">
+  <span class="amt ${cls}">${v==null?"":estDollar(l.t)?usd(v):fmt(v)}</span><button class="del" aria-label="Retirer">✕</button></li>`; }
+function rendreLignes(focusI,pos){ const n=ouvert; if(!n.lignes.length) n.lignes.push({t:"",ok:false});
+  $("e-cl").innerHTML=`<ul class="cl">${n.lignes.map((l,i)=>ligneHtml(l,i,n.type)).join("")}</ul><button class="addl" id="e-add">+ ${n.type==="calc"?"Nouvelle ligne":"Nouvel élément"}</button>`;
+  if(focusI!=null){ const i=$("e-cl").querySelectorAll('input[type=text]')[focusI]; if(i){ i.focus(); const p=pos==null?i.value.length:pos; i.setSelectionRange(p,p); i.scrollIntoView({block:"nearest"}); } } }
+$("e-cl").addEventListener("input",e=>{ const li=e.target.closest("li"); if(!li||!ouvert) return; const l=ouvert.lignes[+li.dataset.i];
+  if(e.target.type==="checkbox"){ l.ok=e.target.checked; li.classList.toggle("done",l.ok); }
+  else{ l.t=e.target.value; const v=montant(l.t), a=li.querySelector(".amt"); a.textContent=v==null?"":estDollar(l.t)?usd(v):fmt(v); a.className="amt "+(v==null?"":(estDollar(l.t)?"usd":"")+(v<0?" neg":"")); }
+  rendreCalc(); touche(); });
+$("e-cl").addEventListener("keydown",e=>{ if(e.target.type!=="text") return; const i=+e.target.closest("li").dataset.i, L=ouvert.lignes, el=e.target;
+  if(e.key==="Enter"){ e.preventDefault(); const p=el.selectionStart??el.value.length; L[i].t=el.value.slice(0,p); L.splice(i+1,0,{t:el.value.slice(p),ok:false}); rendreLignes(i+1,0); touche(); }
+  else if(e.key==="Backspace"&&el.selectionStart===0&&el.selectionEnd===0&&i>0){ e.preventDefault(); const lg=L[i-1].t.length; L[i-1].t+=L[i].t; L.splice(i,1); rendreLignes(i-1,lg); rendreCalc(); touche(); } });
+$("e-cl").addEventListener("click",e=>{ if(e.target.id==="e-add"){ const L=ouvert.lignes; if(L.length&&!L[L.length-1].t.trim()){ rendreLignes(L.length-1); return; } L.push({t:"",ok:false}); rendreLignes(L.length-1); return; }
+  const d=e.target.closest(".del"); if(!d) return; const i=+d.closest("li").dataset.i; ouvert.lignes.splice(i,1); rendreLignes(); rendreCalc(); touche(); });
+
+function rendreCalc(){ const n=ouvert; if(!n||!montreCalcul(n)){ $("e-calc").innerHTML=""; return; } const r=totaux(n);
+  $("e-calc").innerHTML=`<div class="calc"><span class="h">Calcul automatique</span>
+  <span>En francs</span><b>${fc(r.f)}</b><span>En dollars</span><b>${usd(r.u)}</b>
+  ${r.u?`<span>Dollars convertis (taux ${fmt(S.taux)})</span><b>${fc(r.u*S.taux)}</b>`:""}
+  <span style="font-weight:700">Total · ${r.k} montant${r.k>1?"s":""}</span><b style="color:var(--pri)">${fc(r.t)}<br><small style="color:var(--mute)">≈ ${usd(r.t/S.taux)}</small></b>
+  ${n.type==="liste"?(()=>{ const p=partage(n); return `<span style="color:var(--ok)">☑ Déjà coché (${p.fait.k})</span><b style="color:var(--ok)">${fc(p.fait.t)}</b><span style="color:var(--pri2)">☐ Reste (${p.reste.k})</span><b style="color:var(--pri2)">${fc(p.reste.t)}</b>`; })():""}</div>`; }
+function rendreMeta(){ const n=ouvert, typ={note:"📝 Note",liste:"☑ Liste",calc:"🧮 Calcul"}[n.type];
+  $("e-meta").innerHTML=`<span class="tg">${typ}</span>${n.type==="calc"?'<span class="tg">💰 Dépenses</span>':n.dossier?`<span class="tg">📁 ${esc(n.dossier)}</span>`:""}${etiquetteRappel(n)}<span class="tg">Modifiée ${quand(new Date(n.modif))}</span>`;
+  $("e-pin").style.opacity=n.pin?1:.55; $("e-rem").style.opacity=n.rap?1:.55; }
+
+/* ---------- dictée ---------- */
+const Reco=window.SpeechRecognition||window.webkitSpeechRecognition; let reco=null, cible=null;
+$("e-mic").onclick=async()=>{
+  if(NAT){ $("e-mic").classList.add("rec");
+    try{ const r=await NAT("CarnetNative","dicter"); if(r&&r.texte) ajouterDicte(r.texte); else toast("Rien entendu. Réessayez."); }
+    catch(e){ toast("La dictée n'est pas disponible sur ce téléphone (installez « Google » ou « Speech Services »)"); }
+    $("e-mic").classList.remove("rec"); return; }
+  if(reco){ reco.stop(); return; }
+  if(!Reco){ toast("La dictée ne marche pas ici. Ouvrez Mon carnet dans Chrome."); return; }
+  const a=document.activeElement; cible=(a&&(a.id==="e-x"||(a.closest&&a.closest("#e-cl")&&a.type==="text")))?a:(ouvert.type==="note"?$("e-x"):null);
+  reco=new Reco(); reco.lang="fr-FR"; reco.continuous=true; reco.interimResults=false;
+  reco.onresult=e=>{ for(let i=e.resultIndex;i<e.results.length;i++){ if(!e.results[i].isFinal) continue; ajouterDicte(e.results[i][0].transcript.trim()); } };
+  reco.onerror=e=>{ toast(e.error==="not-allowed"?"Autorisez le micro pour dicter":e.error==="network"?"La dictée a besoin d'Internet":"Dictée arrêtée"); };
+  reco.onend=()=>{ reco=null; $("e-mic").classList.remove("rec"); };
+  try{ reco.start(); $("e-mic").classList.add("rec"); toast("🎤 Parlez… touchez encore pour arrêter"); }catch(e){ reco=null; toast("Micro indisponible"); } };
+function ajouterDicte(t){ if(!t||!ouvert) return;
+  if(ouvert.type==="note"){ const x=$("e-x"); x.value=x.value+(x.value&&!/\s$/.test(x.value)?" ":"")+t; ouvert.txt=x.value; taille(); rendreCalc(); touche(); return; }
+  // liste / calcul : chaque phrase devient une ligne
+  const L=ouvert.lignes; if(L.length&&!L[L.length-1].t.trim()) L[L.length-1].t=t; else L.push({t,ok:false}); rendreLignes(); rendreCalc(); touche(); }
+function arreterDictee(){ if(reco){ try{ reco.stop(); }catch(e){} } }
+
+$("e-pin").onclick=()=>{ ouvert.pin=!ouvert.pin; touche(); rendreMeta(); toast(ouvert.pin?"Épinglée en haut":"Désépinglée"); };
+$("e-wa").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(texteNote(ouvert)),"_blank","noopener");
+function texteNote(n){ let s=(n.titre?n.titre+"\n":"");
+  s+=n.type==="note"?n.txt:n.lignes.filter(l=>l.t.trim()).map(l=>(n.type==="liste"?(l.ok?"☑ ":"☐ "):"• ")+l.t).join("\n");
+  if(montreCalcul(n)){ const r=totaux(n); s+="\n—\nEn francs : "+fc(r.f)+(r.u?"\nEn dollars : "+usd(r.u)+" (taux "+fmt(S.taux)+")":"")+"\nTotal : "+fc(r.t); if(n.type==="liste"){ const p=partage(n); s+="\nDéjà coché : "+fc(p.fait.t)+"\nReste : "+fc(p.reste.t); } }
+  return s+"\n\n— Mon carnet · LushiPratique"; }
+
+$("e-rem").onclick=async()=>{ const n=ouvert, d=n.rap?new Date(n.rap):new Date(Date.now()+3600e3);
+  const loc=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  const f=feuille(`<h3>⏰ Rappel</h3><p>${NAT?"Le téléphone sonne à l'heure choisie, même si Mon carnet est fermé.":"Mon carnet vous prévient à l'heure choisie s'il est ouvert. Pour un vrai réveil, installez l'application (APK)."}</p>
+   <label>Date et heure</label><input type="datetime-local" id="f-d" value="${loc}">
+   <div class="btns">${n.rap?'<button class="d" data-x="del">Retirer</button>':""}<button data-x="no">Annuler</button><button class="p" data-x="ok">Enregistrer</button></div>`);
+  const x=await f.choix;
+  if(x==="ok"){ const v=f.el.querySelector("#f-d").value; if(!v){ toast("Choisissez une date"); return; } n.rap=new Date(v).getTime(); n.vu=false;
+    if(!NAT&&"Notification" in window&&Notification.permission==="default"){ try{ await Notification.requestPermission(); }catch(e){} }
+    toast("Rappel : "+quand(new Date(n.rap))); }
+  else if(x==="del"){ n.rap=null; toast("Rappel retiré"); }
+  touche(); rendreMeta(); if(x==="ok"||x==="del") programmer(n); };
+
+$("e-more").onclick=async()=>{ const n=ouvert;
+  const f=feuille(`<h3>${esc(n.titre||"Sans titre")}</h3><div class="label" style="color:var(--mute);font-size:.86rem">Couleur</div>
+   <div class="colors">${COUL.map(c=>`<button data-c="${c}" class="${c===n.c?"on":""}" style="background:${c}" aria-label="Couleur"></button>`).join("")}</div>
+   <div class="menu">
+    ${n.type!=="note"?'<button data-x="tonote">📝 Changer en note libre</button>':""}
+    ${n.type!=="liste"?'<button data-x="toliste">☑ Changer en liste à cocher</button>':""}
+    ${n.type!=="calc"?'<button data-x="tocalc">🧮 Changer en calcul</button>':""}
+    ${n.type==="liste"?'<button data-x="nettoie">🧹 Retirer les éléments cochés</button>':""}
+    ${n.type!=="calc"?'<button data-x="dos">📁 Ranger dans un dossier'+(n.dossier?" ("+esc(n.dossier)+")":"")+'</button>':'<p style="margin:10px 6px">💰 Les dépenses restent ensemble dans « Dépenses ».</p>'}
+    <button data-x="copie">📋 Copier le texte</button>
+    <button data-x="double">➕ Faire une copie de la note</button>
+    <button class="d" data-x="sup">🗑 Supprimer la note</button></div>
+   <div class="btns"><button data-x="no">Fermer</button></div>`);
+  f.el.querySelector(".colors").onclick=e=>{ const b=e.target.closest("[data-c]"); if(!b) return; n.c=b.dataset.c; $("ed").style.setProperty("--c",n.c);
+    f.el.querySelectorAll(".colors button").forEach(x=>x.classList.toggle("on",x===b)); touche(); };
+  const x=await f.choix;
+  if(x&&x.startsWith("to")){ const t=x.slice(2), L=lignesDe(n);
+    if(t==="note"){ n.txt=L.join("\n"); delete n.lignes; } else { n.lignes=(n.lignes||L.map(l=>({t:l,ok:false}))).filter((l,i,a)=>l.t.trim()||a.length===1); }
+    n.type=t; touche(); const id=n.id; ouvert=null; $("ed").classList.remove("on"); history.back(); setTimeout(()=>ouvrir(id),80); }
+  else if(x==="nettoie"){ n.lignes=n.lignes.filter(l=>!l.ok); rendreLignes(); rendreCalc(); touche(); }
+  else if(x==="copie"){ try{ await navigator.clipboard.writeText(texteNote(n)); toast("Texte copié"); }catch(e){ toast("Copie impossible sur ce téléphone"); } }
+  else if(x==="double"){ const c=JSON.parse(JSON.stringify(n)); c.id=Date.now().toString(36)+"c"; c.titre=(n.titre||"Note")+" (copie)"; c.pin=false; c.rap=null; c.modif=Date.now(); S.notes.unshift(c); sauver(); toast("Copie créée"); }
+  else if(x==="sup"){ ouvert=null; $("ed").classList.remove("on"); history.back(); jeter(n); rendreListe(); }
+  else if(x==="dos"){ const d=await feuille(`<h3>📁 Ranger dans un dossier</h3><div class="menu"><button data-x="">Aucun dossier</button>${S.dossiers.map(d=>`<button data-x="${esc(d)}">${n.dossier===d?"✓ ":""}📁 ${esc(d)}</button>`).join("")}</div><div class="btns"><button data-x="no">Annuler</button></div>`).choix;
+    if(d!=="no"){ n.dossier=d; touche(); rendreMeta(); toast(d?"Rangée dans "+d:"Retirée du dossier"); } } };
+
+/* ---------- menu général ---------- */
+$("b-menu").onclick=async()=>{
+  const f=feuille(`<h3>📒 Mon carnet</h3><p>${S.notes.length} note${S.notes.length>1?"s":""} dans ce téléphone.</p><div class="menu">
+   <button data-x="code">${codeActif()?"🔒 Changer ou retirer le code secret":"🔒 Mettre un code secret"}</button>
+   <button data-x="taux">💱 Taux du dollar : 1 $ = ${fc(S.taux)}</button>
+   <button data-x="gerer">📁 Gérer les dossiers</button>
+   <button data-x="save">💾 Sauvegarder mes notes (fichier)</button>
+   <button data-x="load">📂 Remettre une sauvegarde</button>
+   <button data-x="about">ℹ️ À propos</button></div><div class="btns"><button data-x="no">Fermer</button></div>`);
+  const x=await f.choix;
+  if(x==="code"){
+    if(!codeActif()){ await choisirCode(); return; }
+    const c=await saisir("Code actuel","Tapez votre code actuel",true); if(c==null) return;
+    if(await hacher(c)!==localStorage.getItem(LK)){ toast("Code faux"); return; }
+    const y=await feuille(`<h3>🔒 Code secret</h3><div class="menu"><button data-x="chg">Changer le code</button><button class="d" data-x="off">Retirer le code</button></div><div class="btns"><button data-x="no">Annuler</button></div>`).choix;
+    if(y==="chg") await choisirCode(); else if(y==="off"){ localStorage.removeItem(LK); majCadenas(); toast("Code secret retiré"); } return; }
+  if(x==="gerer"){ const d=await feuille(`<h3>📁 Mes dossiers</h3><p>Touchez un dossier pour le supprimer. Ses notes ne sont pas effacées.</p><div class="menu">${S.dossiers.map(d=>`<button data-x="${esc(d)}">📁 ${esc(d)}</button>`).join("")}</div><div class="btns"><button data-x="no">Fermer</button></div>`).choix;
+    if(d!=="no"&&await confirmer("Supprimer le dossier « "+d+" » ? Ses notes restent dans « Toutes ».","Supprimer")){ S.dossiers=S.dossiers.filter(x=>x!==d); S.notes.forEach(n=>{ if(n.dossier===d) n.dossier=""; }); if(filtre==="d:"+d) filtre="tout"; sauver(); rendreListe(); } return; }
+  if(x==="taux"){ const v=await demander("Taux du dollar","1 $ = combien de FC ?",String(S.taux)); if(v==null) return;
+    const t=parseFloat(String(v).replace(/\s/g,"").replace(",",".")); if(!(t>0)){ toast("Taux non valable"); return; } S.taux=t; sauver(); rendreListe(); toast("1 $ = "+fc(t)); }
+  else if(x==="save"){ const b=new Blob([JSON.stringify(S,null,1)],{type:"application/json"}), a=document.createElement("a");
+    a.href=URL.createObjectURL(b); a.download="mon-carnet-"+new Date().toISOString().slice(0,10)+".json"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000); toast("Sauvegarde enregistrée dans Téléchargements"); }
+  else if(x==="load"){ const i=document.createElement("input"); i.type="file"; i.accept=".json,application/json";
+    i.onchange=async()=>{ try{ const s=JSON.parse(await i.files[0].text()); if(!Array.isArray(s.notes)) throw 0;
+      if(!(await confirmer("Ajouter les "+s.notes.length+" notes de cette sauvegarde ? Vos notes actuelles sont gardées.","Ajouter"))) return;
+      const ids=new Set(S.notes.map(n=>n.id)); s.notes.forEach(n=>{ if(!ids.has(n.id)) S.notes.push(n); }); (s.dossiers||[]).forEach(d=>{ if(!S.dossiers.includes(d)) S.dossiers.push(d); }); sauver(); rendreListe(); toast("Sauvegarde remise"); }
+      catch(e){ toast("Ce fichier n'est pas une sauvegarde de Mon carnet"); } }; i.click(); }
+  else if(x==="about"){ await feuille(`<h3>Mon carnet</h3><p>Un bloc-notes de LushiPratique : notes, listes à cocher, calculs en francs et en dollars, rappels.</p><p>Vos notes restent dans ce téléphone et ne sont envoyées nulle part. Faites une sauvegarde de temps en temps.</p><p>La technologie au service de la cité.</p><div class="btns"><button class="p" data-x="no">Compris</button></div>`).choix; } };
+
+/* ---------- code secret ---------- */
+const LK="monCarnet.code";
+async function hacher(c){ const t="mon-carnet|"+c;
+  try{ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+  catch(e){ let h=5381; for(const ch of t) h=((h*33)^ch.charCodeAt(0))>>>0; return "s"+h; } }
+const codeActif=()=>!!localStorage.getItem(LK);
+let pave=null;
+function saisir(titre,msg,annulable){ return new Promise(res=>{ let v=""; $("l-t").textContent=titre; $("l-m").textContent=msg; $("lock").classList.add("on");
+  $("l-p").querySelector('[data-k="x"]').style.visibility=annulable?"visible":"hidden";
+  const dots=()=>$("l-d").querySelectorAll("i").forEach((d,i)=>d.classList.toggle("f",i<v.length)); dots();
+  pave=k=>{ if(k==="x"){ fin(null); return; } if(k==="b"){ v=v.slice(0,-1); dots(); return; } if(v.length>=4) return; v+=k; dots(); if(v.length===4) setTimeout(()=>fin(v),120); };
+  function fin(r){ pave=null; $("lock").classList.remove("on"); res(r); } }); }
+$("l-p").onclick=e=>{ const b=e.target.closest("[data-k]"); if(b&&pave) pave(b.dataset.k); };
+document.addEventListener("keydown",e=>{ if(!pave) return; if(/^\d$/.test(e.key)) pave(e.key); else if(e.key==="Backspace") pave("b"); });
+let bloque=false;
+async function verrouiller(){ if(!codeActif()||bloque) return; bloque=true; arreterDictee();
+  const ess=()=>+(localStorage.getItem(LK+".ess")||0);
+  while(true){ const att=+(localStorage.getItem(LK+".att")||0);
+    if(att>Date.now()){ await new Promise(r=>setTimeout(r,1000)); $("lock").classList.add("on"); $("l-m").textContent="Trop d'erreurs. Attendez "+Math.ceil((att-Date.now())/1000)+" s"; continue; }
+    const c=await saisir("Mon carnet",ess()?"Code faux. Réessayez.":"Tapez votre code secret",false);
+    if(c&&await hacher(c)===localStorage.getItem(LK)){ localStorage.removeItem(LK+".ess"); break; }
+    const n=ess()+1; localStorage.setItem(LK+".ess",n); if(n%5===0) localStorage.setItem(LK+".att",Date.now()+30000*(n/5)); }
+  bloque=false; }
+async function choisirCode(){ const a=await saisir("Nouveau code","Choisissez 4 chiffres",true); if(a==null) return;
+  const b=await saisir("Confirmez","Tapez les mêmes 4 chiffres",true); if(b==null) return;
+  if(a!==b){ toast("Les deux codes ne sont pas pareils"); return; } localStorage.setItem(LK,await hacher(a)); majCadenas(); toast("🔒 Code secret activé"); }
+function majCadenas(){ $("b-lock").style.display=codeActif()?"":"none"; }
+$("b-lock").onclick=verrouiller;
+let cacheDepuis=0;
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) cacheDepuis=Date.now(); else if(cacheDepuis&&Date.now()-cacheDepuis>60000) verrouiller(); });
+
+/* ---------- rappels ---------- */
+function verifierRappels(){ const now=Date.now();
+  S.notes.forEach(n=>{ if(n.rap&&n.rap<=now&&!n.vu){ n.vu=true; sauver();
+    const msg=(n.titre||"Note")+" — "+(apercu(n).split("\n")[0]||"");
+    if("Notification" in window&&Notification.permission==="granted"&&document.hidden){ try{ new Notification("⏰ Mon carnet",{body:msg,tag:n.id}); }catch(e){} }
+    toast("⏰ "+msg,()=>ouvrir(n.id),"Ouvrir"); try{ navigator.vibrate&&navigator.vibrate([250,120,250]); }catch(e){} } });
+  if(!ouvert) rendreListe(); }
+setInterval(verifierRappels,20000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) verifierRappels(); });
+
+/* ---------- petites fenêtres ---------- */
+function feuille(html){ const bg=document.createElement("div"); bg.className="bg"; bg.innerHTML=`<div class="sh" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(bg); const o={el:bg};
+  o.choix=new Promise(res=>bg.addEventListener("click",e=>{ const b=e.target.closest("[data-x]"); if(e.target===bg||b){ res(b?b.dataset.x:"no"); bg.remove(); } }));
+  const i=bg.querySelector("input:not([type=datetime-local])"); if(i) setTimeout(()=>{ i.focus(); i.select&&i.select(); },60); return o; }
+async function demander(titre,label,val,texte){ const f=feuille(`<h3>${esc(titre)}</h3><label>${esc(label)}</label><input id="f-v" ${texte?"":'inputmode="decimal"'} value="${esc(val||"")}"><div class="btns"><button data-x="no">Annuler</button><button class="p" data-x="ok">OK</button></div>`);
+  f.el.querySelector("#f-v").onkeydown=e=>{ if(e.key==="Enter") f.el.querySelector('[data-x="ok"]').click(); };
+  const x=await f.choix; return x==="ok"?f.el.querySelector("#f-v").value:null; }
+async function confirmer(msg,ok){ return (await feuille(`<h3>${esc(msg)}</h3><div class="btns"><button data-x="no">Annuler</button><button class="d" data-x="ok">${esc(ok)}</button></div>`).choix)==="ok"; }
+let tt=null;
+function toast(m,action,lab){ document.querySelectorAll(".toast").forEach(t=>t.remove()); clearTimeout(tt);
+  const t=document.createElement("div"); t.className="toast"; t.innerHTML=`<span>${esc(m)}</span>`;
+  if(action){ const b=document.createElement("button"); b.textContent=lab||"Annuler"; b.onclick=()=>{ t.remove(); action(); }; t.appendChild(b); }
+  document.body.appendChild(t); tt=setTimeout(()=>t.remove(),action?6000:2400); }
+
+sauver(); majCadenas(); rendreListe(); verrouiller().then(verifierRappels);
+try{ if(NAT) window.Capacitor.addListener("LocalNotifications","localNotificationActionPerformed",a=>{ const id=a&&a.notification&&a.notification.extra&&a.notification.extra.note; if(id) verrouiller().then(()=>ouvrir(id)); }); }catch(e){}
+})();
+</script>
+<!-- ===== Code de l'application Android (APK), lu par l'usine GitHub ===== -->
+<script type="text/plain" id="apk-main">
+package com.lushipratique.moncarnet;
+
+import android.os.Bundle;
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(CarnetNativePlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+}
+</script>
+<script type="text/plain" id="apk-plugin">
+package com.lushipratique.moncarnet;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.speech.RecognizerIntent;
+import androidx.activity.result.ActivityResult;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import java.util.ArrayList;
+
+@CapacitorPlugin(name = "CarnetNative")
+public class CarnetNativePlugin extends Plugin {
+    // Dictée : ouvre la reconnaissance vocale d'Android, en français.
+    @PluginMethod
+    public void dicter(PluginCall call) {
+        Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "fr-FR");
+        i.putExtra(RecognizerIntent.EXTRA_PROMPT, "Parlez, Mon carnet écrit…");
+        try { startActivityForResult(call, i, "finDictee"); }
+        catch (Exception e) { call.reject("Dictée indisponible"); }
+    }
+
+    @ActivityCallback
+    private void finDictee(PluginCall call, ActivityResult r) {
+        if (call == null) return;
+        String t = "";
+        if (r.getResultCode() == Activity.RESULT_OK && r.getData() != null) {
+            ArrayList<String> L = r.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (L != null && !L.isEmpty()) t = L.get(0);
+        }
+        JSObject o = new JSObject();
+        o.put("texte", t);
+        call.resolve(o);
+    }
+}
+</script>
+<script type="text/plain" id="apk-icon">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</script>
+</body>
+</html>
